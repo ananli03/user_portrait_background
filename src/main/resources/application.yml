@@ -1,0 +1,23 @@
+server:
+  port: 3333
+
+spring:
+  datasource:
+    username: root
+    password: "!thy"
+    url: jdbc:mysql:///studenti
+
+  redis:
+    host: localhost
+    port: 6379
+
+logging:
+  level:
+    com.ss: debug
+
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-not-delete-value: 0
+      logic-delete-value: 1

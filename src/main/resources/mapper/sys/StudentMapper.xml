@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ss.sys.mapper.StudentMapper">
+
+    <select id="OrderBysscore" resultType="com.ss.sys.entity.Student">
+        SELECT * FROM stu_information order by synthesisScore desc ;
+    </select>
+    <select id="selectAll" resultType="com.ss.sys.entity.Student">
+        SELECT sno,name,sex,age,college,major,grade,status,politics,snative FROM stu_information  ;
+    </select>
+    <select id="getscore" resultType="com.ss.sys.entity.Student">
+        SELECT * FROM stu_information
+        WHERE sno = #{sno}
+        ORDER BY assessment_year ASC;
+    </select>
+    <select id="getMBTI" resultType="com.ss.sys.entity.MBTI">
+        SELECT * FROM mbti
+        WHERE sno = #{sno}
+    </select>
+    <select id="getTechnique" resultType="map">
+        SELECT technique FROM techniqueInfo
+        WHERE sno = #{sno}
+    </select>
+    <select id="getClassScore" resultType="map">
+        SELECT
+            assessment_year,
+            major,
+            AVG(synthesis_score) AS average_score,
+            AVG(moral) AS average_moral,
+            AVG(study) AS average_study,
+            AVG(innovate) AS average_innovate,
+            AVG(sport) AS average_sport,
+            AVG(career) AS average_career,
+            AVG(competition) AS average_competition,
+            AVG(production) AS average_production,
+            AVG(work) AS average_work,
+            AVG(practice) AS average_practice
+        FROM
+            stu_information
+        WHERE
+            major = #{major}
+          AND grade = #{grade}
+        GROUP BY
+            assessment_year,
+            major
+        ORDER BY
+            assessment_year ASC;
+    </select>
+    <select id="getExcellentScore" resultType="map">
+        SELECT
+            *
+        FROM
+            stu_information si
+                INNER JOIN (
+                SELECT
+                    assessment_year,
+                    major,
+                    grade,
+                    MIN(synthesis_majorranking) as min_rank
+                FROM
+                    stu_information
+                WHERE
+                    major = #{major}
+                  AND grade = #{grade}
+                GROUP BY
+                    assessment_year, major, grade
+            ) as min_ranked
+                           ON
+                                       si.assessment_year = min_ranked.assessment_year
+                                   AND si.major = min_ranked.major
+                                   AND si.grade = min_ranked.grade
+                                   AND si.synthesis_majorranking = min_ranked.min_rank
+        ORDER BY
+            si.assessment_year;
+    </select>
+    <select id="getMaxRank" resultType="map">
+        SELECT
+            *
+        FROM
+            stu_information si
+                INNER JOIN (
+                SELECT
+                    assessment_year,
+                    major,
+                    grade,
+                    MAX(synthesis_majorranking) as max_rank  -- 这里将 MIN 改为 MAX
+                FROM
+                    stu_information
+                WHERE
+                    major = #{major}
+                  AND grade = #{grade}
+                GROUP BY
+                    assessment_year, major, grade
+            ) as max_ranked
+                           ON
+                                       si.assessment_year = max_ranked.assessment_year
+                                   AND si.major = max_ranked.major
+                                   AND si.grade = max_ranked.grade
+                                   AND si.synthesis_majorranking = max_ranked.max_rank  -- 这里对应的是 max_rank
+        ORDER BY
+            si.assessment_year;
+    </select>
+    <select id="getLessonCount" resultType="int">
+        SELECT COUNT(*) FROM stu_lesson
+        WHERE sno = #{sno}
+    </select>
+    <select id="getLesson" resultType="com.ss.sys.entity.StuLesson">
+        SELECT * FROM stu_lesson
+        WHERE sno = #{sno}
+        ORDER BY lesson_score DESC;
+    </select>
+    <select id="getLessonArrange" resultType="com.ss.sys.entity.LessonArrangement">
+        SELECT * FROM lesson_arrange
+        WHERE sno = #{sno}
+        ORDER BY time DESC;
+    </select>
+    <select id="getTeacher" resultType="com.ss.sys.entity.Teacher">
+        SELECT * FROM teacher
+        WHERE sclass = #{sclass}
+        ORDER BY position DESC;
+    </select>
+    <select id="getHonor" resultType="com.ss.sys.entity.Honor">
+        SELECT * FROM honor
+        WHERE sno = #{sno}
+        ORDER BY date DESC;
+    </select>
+    <select id="getHonor1" resultType="map">
+        SELECT
+            LEFT(date, 4) AS year,
+            title,
+            date
+        FROM honor
+        WHERE sno = #{sno}
+        ORDER BY
+            date ASC  -- 按年份降序排序
+    </select>
+    <select id="selectAllStudentsOrderByMajorAndRank" resultType="com.ss.sys.entity.Student">
+        SELECT * FROM stu_information
+        WHERE assessment_year = (SELECT MAX(assessment_year) FROM stu_information)
+    </select>
+    <select id="selectStudentBySno" resultType="com.ss.sys.entity.Student">
+    SELECT * FROM stu_information
+    WHERE assessment_year = (SELECT MAX(assessment_year)FROM stu_information)
+      AND sno = #{sno}
+</select>
+    <select id="getRankingsByStudent" resultType="Integer">
+        SELECT synthesis_majorranking
+        FROM stu_information
+        WHERE sno = #{sno}
+    </select>
+    <select id="getReadCount" resultType="int">
+        SELECT COUNT(*) FROM reading
+        WHERE sno = #{sno}
+    </select>
+    <select id="getInterestBySno" resultType="map">
+        SELECT type, COUNT(*) as count
+        FROM interest
+        WHERE sno = #{sno}
+        GROUP BY type
+    </select>
+    <select id="getAdvantageCount" resultType="map">
+        SELECT type, COUNT(*) as count
+        FROM advantage
+        WHERE sno = #{sno}
+        GROUP BY type
+        ORDER BY type DESC
+    </select>
+    <select id="getAdvantage" resultType="map">
+        SELECT *
+        FROM advantage
+        WHERE sno = #{sno}
+        ORDER BY type DESC
+    </select>
+    <select id="getPracticeCount" resultType="int">
+        SELECT COUNT(*) FROM advantage
+        WHERE sno = #{sno} AND type="实习经历"
+    </select>
+</mapper>
